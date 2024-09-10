@@ -16,7 +16,7 @@ import { defineProps, defineModel } from "vue";
 
 const value = defineModel();
 
-const props = defineProps({
+defineProps({
   id: String,
   label: String,
   placeholder: String,
