@@ -26,15 +26,44 @@
       type="number"
     />
 
+    <Input
+      id="additional_atk"
+      label="Additional attack / magic attack"
+      v-model="additionalAtk"
+      placeholder="Enter additional attack / magic attack"
+      type="number"
+    />
+
+    <Input
+      id="additional_crit_damage"
+      label="Additional Critical damage (%)"
+      v-model="additionalCritDamage"
+      placeholder="Enter additional critical damage (%)"
+      type="number"
+    />
+
+    <Input
+      id="additional_amp"
+      label="Additional amplification Sword / Magic (%)"
+      v-model="additionalAmp"
+      placeholder="Enter additional amplification Sword / Magic"
+      type="number"
+    />
+
     <div class="space-y-2">
       <LabelValue
         label="Total damage by critical hit"
-        :value="totalCriticalDamage"
+        :value="`${Math.round(totalCriticalDamage)}`"
+      />
+
+      <LabelValue
+        label="Total damage by critical hit (with additional stats)"
+        :value="`${Math.round(totalDamageWithAdditionalStats)}`"
       />
 
       <LabelValue
         label="1% Amp attack = ATK/MATK"
-        :value="atkToAmpEquivalent"
+        :value="`${Math.round(atkToAmpEquivalent)}`"
       />
 
       <LabelValue
@@ -51,14 +80,28 @@ import LabelValue from "./components/LabelValue.vue";
 import { ref, computed } from "vue";
 
 const baseAtk = ref(1000);
-
 const critDamage = ref(100);
 const baseAmp = ref(50);
+
+const additionalAtk = ref(0);
+const additionalCritDamage = ref(0);
+const additionalAmp = ref(0);
 
 const totalCriticalDamage = computed(() => {
   const amplifiedBase = baseAtk.value * (1 + baseAmp.value / 100);
 
   return amplifiedBase * (1 + critDamage.value / 100);
+});
+
+const totalDamageWithAdditionalStats = computed(() => {
+  const totalAtk = baseAtk.value + additionalAtk.value;
+
+  const totalAmp = baseAmp.value + additionalAmp.value;
+
+  const totalCritDamage = critDamage.value + additionalCritDamage.value;
+
+  const amplifiedBase = totalAtk * (1 + totalAmp / 100);
+  return amplifiedBase * (1 + totalCritDamage / 100);
 });
 
 const atkToAmpEquivalent = computed(() => {
