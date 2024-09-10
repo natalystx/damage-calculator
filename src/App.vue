@@ -1,0 +1,86 @@
+<template>
+  <div
+    class="max-w-2xl px-4 sm:px-6 lg:px-12 py-6 sm:py-14 lg:py-20 mx-auto space-y-4"
+  >
+    <Input
+      id="base_atk"
+      label="Base attack / magic attack"
+      v-model="baseAtk"
+      placeholder="Enter base attack / magic attack"
+      type="number"
+    />
+
+    <Input
+      id="crit_damage"
+      label="Critical damage (%)"
+      v-model="critDamage"
+      placeholder="Enter critical damage"
+      type="number"
+    />
+
+    <Input
+      id="base_amp"
+      label="Base amplification Sword / Magic (%)"
+      v-model="baseAmp"
+      placeholder="Enter base amplification Sword / Magic"
+      type="number"
+    />
+
+    <div class="space-y-2">
+      <LabelValue
+        label="Total damage by critical hit"
+        :value="totalCriticalDamage"
+      />
+
+      <LabelValue
+        label="1% Amp attack = ATK/MATK"
+        :value="atkToAmpEquivalent"
+      />
+
+      <LabelValue
+        label="1% Amp = X% Crit Damage"
+        :value="`~ ${Math.round(ampToCritDamageEquivalent)}%`"
+      />
+    </div>
+  </div>
+</template>
+
+<script lang="ts" setup>
+import Input from "./components/Input.vue";
+import LabelValue from "./components/LabelValue.vue";
+import { ref, computed } from "vue";
+
+const baseAtk = ref(1000);
+
+const critDamage = ref(100);
+const baseAmp = ref(50);
+
+const totalCriticalDamage = computed(() => {
+  const amplifiedBase = baseAtk.value * (1 + baseAmp.value / 100);
+
+  return amplifiedBase * (1 + critDamage.value / 100);
+});
+
+const atkToAmpEquivalent = computed(() => {
+  return baseAtk.value / 100;
+});
+
+const ampToCritDamageEquivalent = computed(() => {
+  const totalDamageBeforeAmp =
+    baseAtk.value * (1 + baseAmp.value / 100) * (1 + critDamage.value / 100);
+
+  const totalDamageAfterAmp =
+    baseAtk.value *
+    (1 + (baseAmp.value + 1) / 100) *
+    (1 + critDamage.value / 100);
+
+  const damageIncreaseFromAmp = totalDamageAfterAmp - totalDamageBeforeAmp;
+
+  const critDamageBoost =
+    (totalDamageBeforeAmp + damageIncreaseFromAmp) /
+      (baseAtk.value * (1 + baseAmp.value / 100)) -
+    1;
+
+  return critDamageBoost * 100 - critDamage.value;
+});
+</script>
