@@ -50,6 +50,22 @@
       type="number"
     />
 
+    <Input
+      id="enemy_def"
+      label="Enemy Defense"
+      v-model="enemyDef"
+      placeholder="Enter enemy defense"
+      type="number"
+    />
+
+    <Input
+      id="penetration"
+      label="Penetration"
+      v-model="penetration"
+      placeholder="Enter penetration"
+      type="number"
+    />
+
     <div class="space-y-2">
       <LabelValue
         label="Total damage by critical hit"
@@ -87,20 +103,27 @@ const additionalAtk = ref(0);
 const additionalCritDamage = ref(0);
 const additionalAmp = ref(0);
 
-const totalCriticalDamage = computed(() => {
-  const amplifiedBase = baseAtk.value * (1 + baseAmp.value / 100);
+const enemyDef = ref(0);
+const penetration = ref(0);
 
+function getEffectiveAtk(atk: number): number {
+  const effectiveDef = Math.max(0, enemyDef.value - penetration.value);
+  return Math.max(0, atk - effectiveDef);
+}
+
+const totalCriticalDamage = computed(() => {
+  const effectiveAtk = getEffectiveAtk(baseAtk.value);
+  const amplifiedBase = effectiveAtk * (1 + baseAmp.value / 100);
   return amplifiedBase * (1 + critDamage.value / 100);
 });
 
 const totalDamageWithAdditionalStats = computed(() => {
   const totalAtk = baseAtk.value + additionalAtk.value;
-
   const totalAmp = baseAmp.value + additionalAmp.value;
-
   const totalCritDamage = critDamage.value + additionalCritDamage.value;
 
-  const amplifiedBase = totalAtk * (1 + totalAmp / 100);
+  const effectiveAtk = getEffectiveAtk(totalAtk);
+  const amplifiedBase = effectiveAtk * (1 + totalAmp / 100);
   return amplifiedBase * (1 + totalCritDamage / 100);
 });
 
@@ -109,11 +132,13 @@ const atkToAmpEquivalent = computed(() => {
 });
 
 const ampToCritDamageEquivalent = computed(() => {
+  const effectiveAtk = getEffectiveAtk(baseAtk.value);
+
   const totalDamageBeforeAmp =
-    baseAtk.value * (1 + baseAmp.value / 100) * (1 + critDamage.value / 100);
+    effectiveAtk * (1 + baseAmp.value / 100) * (1 + critDamage.value / 100);
 
   const totalDamageAfterAmp =
-    baseAtk.value *
+    effectiveAtk *
     (1 + (baseAmp.value + 1) / 100) *
     (1 + critDamage.value / 100);
 
@@ -121,7 +146,7 @@ const ampToCritDamageEquivalent = computed(() => {
 
   const critDamageBoost =
     (totalDamageBeforeAmp + damageIncreaseFromAmp) /
-      (baseAtk.value * (1 + baseAmp.value / 100)) -
+      (effectiveAtk * (1 + baseAmp.value / 100)) -
     1;
 
   return critDamageBoost * 100 - critDamage.value;
