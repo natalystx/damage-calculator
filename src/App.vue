@@ -68,6 +68,11 @@
 
     <div class="space-y-2">
       <LabelValue
+        label="Effective ATK (after enemy DEF - penetration)"
+        :value="`${Math.round(effectiveAtkDisplay)}`"
+      />
+
+      <LabelValue
         label="Total damage by critical hit"
         :value="`${Math.round(totalCriticalDamage)}`"
       />
@@ -95,6 +100,7 @@ import Input from "./components/Input.vue";
 import LabelValue from "./components/LabelValue.vue";
 import { ref, computed } from "vue";
 
+// Inputs
 const baseAtk = ref(1000);
 const critDamage = ref(100);
 const baseAmp = ref(50);
@@ -106,11 +112,13 @@ const additionalAmp = ref(0);
 const enemyDef = ref(0);
 const penetration = ref(0);
 
+// Utils
 function getEffectiveAtk(atk: number): number {
   const effectiveDef = Math.max(0, enemyDef.value - penetration.value);
   return Math.max(0, atk - effectiveDef);
 }
 
+// Computed
 const totalCriticalDamage = computed(() => {
   const effectiveAtk = getEffectiveAtk(baseAtk.value);
   const amplifiedBase = effectiveAtk * (1 + baseAmp.value / 100);
@@ -125,6 +133,11 @@ const totalDamageWithAdditionalStats = computed(() => {
   const effectiveAtk = getEffectiveAtk(totalAtk);
   const amplifiedBase = effectiveAtk * (1 + totalAmp / 100);
   return amplifiedBase * (1 + totalCritDamage / 100);
+});
+
+const effectiveAtkDisplay = computed(() => {
+  const totalAtk = baseAtk.value + additionalAtk.value;
+  return getEffectiveAtk(totalAtk);
 });
 
 const atkToAmpEquivalent = computed(() => {
